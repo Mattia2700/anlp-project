@@ -46,11 +46,12 @@
 
 ```json
 {
-"anger": ["anger", "annoyance", "disapproval"],
-"disgust": ["disgust"],
-"fear": ["fear", "nervousness"],
-"joy": ["joy", "amusement", "approval", "excitement", "gratitude",  "love", "optimism", "relief", "pride", "admiration", "desire", "caring"],
-"sadness": ["sadness", "disappointment", "embarrassment", "grief",  "remorse"],
-"surprise": ["surprise", "realization", "confusion", "curiosity"]
+  "anger": ["anger", "annoyance", "disapproval"],
+  "disgust": ["disgust"],
+  "fear": ["fear", "nervousness"],
+  "joy": ["joy", "amusement", "approval", "excitement", "gratitude",  "love", "optimism", "relief", "pride", "admiration", "desire", "caring"],
+  "neutral": ["neutral"],
+  "sadness": ["sadness", "disappointment", "embarrassment", "grief",  "remorse"],
+  "surprise": ["surprise", "realization", "confusion", "curiosity"]
 }
 ```
