@@ -20,7 +20,7 @@ class GoEmotions(Dataset):
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        # TODO: tokenization
+        # TODO: tokenization'
         return item["text"], item["labels"]
 
     def _reduce_labels(self, item):
