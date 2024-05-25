@@ -6,7 +6,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from spotipy.oauth2 import SpotifyOAuth
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, FileResponse
+from starlette.staticfiles import StaticFiles
 
 os.environ["SPOTIPY_CLIENT_ID"] = "f516c752459a4b94acba6a768cad9c43"
 os.environ["SPOTIPY_CLIENT_SECRET"] = "641839e196f24feda3341dd5ac972749"
@@ -16,6 +17,9 @@ app = FastAPI()
 app.scope = "user-read-recently-played"
 app.sp = SpotifyOAuth(scope=app.scope)
 app.client = None
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
 class Item(BaseModel):
     name: str
     description: str | None = None
@@ -35,7 +39,13 @@ class Item(BaseModel):
         }
     }
 
-@app.get("/callback")
+
+@app.get("/api/authorize")
+def spotify_authorize(request: Request):
+    return RedirectResponse(app.sp.get_authorize_url())
+
+
+@app.get("/api/recent")
 def anything(request: Request):
     access_token = None
     code = app.sp.parse_response_code(request.query_params["code"])
@@ -73,4 +83,15 @@ def anything(request: Request):
 
 @app.get("/login")
 def spotify_login():
-    return RedirectResponse(app.sp.get_authorize_url())
+    # RedirectResponse(app.sp.get_authorize_url())
+    return FileResponse("static/login.html")
+
+
+@app.get("/callback")
+def spotify_callback(request: Request):
+    return FileResponse("static/recent.html")
+
+
+@app.get("/suggest")
+def suggest():
+    return FileResponse("static/suggest.html")
