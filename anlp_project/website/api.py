@@ -56,9 +56,13 @@ def anything(request: Request):
     if access_token:
         print(access_token)
         app.client = spotipy.Spotify(auth=access_token)
-        last_week_timestamp = int((datetime.datetime.now() - datetime.timedelta(weeks=1)).timestamp() * 1000)
+        last_week_timestamp = int(
+            (datetime.datetime.now() - datetime.timedelta(weeks=1)).timestamp() * 1000
+        )
 
-        results = app.client.current_user_recently_played(after=last_week_timestamp)
+        results = app.client.current_user_recently_played(
+            after=last_week_timestamp, limit=10
+        )
 
         actual_songs = set()
 
@@ -69,12 +73,12 @@ def anything(request: Request):
         actual_songs = list(actual_songs)
 
         for idx, (artist, song) in enumerate(actual_songs.copy()):
-            if '- Remastered' in song:
-                song = song.replace(' - Remastered', '')
-            elif '- Radio Edit' in song:
-                song = song.replace(' - Radio Edit', '')
-            elif '- Remix' in song:
-                song = song.replace(' - Remix', '')
+            if "- Remastered" in song:
+                song = song.replace(" - Remastered", "")
+            elif "- Radio Edit" in song:
+                song = song.replace(" - Radio Edit", "")
+            elif "- Remix" in song:
+                song = song.replace(" - Remix", "")
 
             actual_songs[idx] = (artist, song)
 

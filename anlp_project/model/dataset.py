@@ -1,12 +1,15 @@
-import os
-
+import torch
 from datasets import load_dataset
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
+from transformers import AutoTokenizer
 
 
 class GoEmotions(Dataset):
-    def __init__(self, split, transform=True):
-        self.dataset = load_dataset("go_emotions", "simplified", split="train")
+    def __init__(self, split, transform):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.dataset = load_dataset("go_emotions", "simplified", split=split)
+        self.dataset = self.dataset.map(self._drop_id)
+        self.tokenizer = AutoTokenizer.from_pretrained("FacebookAI/roberta-base")
         if transform:
             # fmt: off
             self.annotaions = {"anger": "anger", "annoyance": "anger", "disapproval": "anger", "disgust": "disgust", "fear": "fear", "nervousness": "fear", "joy": "joy", "amusement": "joy", "approval": "joy", "excitement": "joy", "gratitude": "joy", "love": "joy", "optimism": "joy", "relief": "joy", "pride": "joy", "admiration": "joy", "desire": "joy", "caring": "joy", "sadness": "sadness", "disappointment": "sadness", "embarrassment": "sadness", "grief": "sadness", "remorse": "sadness", "surprise": "surprise", "realization": "surprise", "confusion": "surprise", "curiosity": "surprise", "neutral": "neutral"}
@@ -20,8 +23,16 @@ class GoEmotions(Dataset):
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        # TODO: tokenization'
-        return item["text"], item["labels"]
+        text = self.tokenizer(
+            item["text"], return_tensors="pt", padding="max_length", truncation=True
+        )
+        # [x,1,4096] to [x,4096]
+        text = {k: v.squeeze() for k, v in text.items()}
+        label = self._one_hot_encode(item["labels"])
+        return text, label
+
+    def _one_hot_encode(self, item):
+        return torch.Tensor([1 if i in item else 0 for i in range(7)])
 
     def _reduce_labels(self, item):
         item["labels"] = list(
@@ -32,9 +43,8 @@ class GoEmotions(Dataset):
                 ]
             )
         )
-        return item
+        # print(item["labels"])
+        return {k: v for k, v in item.items() if k != "id"}
 
-
-def main():
-    x = GoEmotions("train")
-    print(x[0])
+    def _drop_id(self, item):
+        return

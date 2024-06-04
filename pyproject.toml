@@ -8,18 +8,23 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 datasets = "^2.19.1"
-torch = "^2.3.0"
 spotipy = "^2.23.0"
 pymusixmatch = "^0.3"
 lyricsgenius = "^3.0.1"
 fastapi = "^0.111.0"
+transformers = {extras = ["sentencepiece", "torch"], version = "^4.41.1"}
+lightning = "^2.2.5"
+torch = "^2.3.0"
+wandb = "^0.17.0"
 
 [tool.poetry.scripts]
-main = "anlp_project.__main__:main"
+main = "anlp_project.model.__main__:main"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
+ruff = "^0.4.7"
+ruff-lsp = "^0.0.53"
 
 [build-system]
 requires = ["poetry-core"]
