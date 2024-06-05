@@ -21,7 +21,7 @@ function suggest() {
   <h3 v-for="song in songs" :key="song">{{ song[0] }} - {{ song[1] }}</h3>
   <div class="spacer" />
   <h2>Dai testi il tuo mood sembra</h2>
-  <h1 class="upper">neutrale</h1>
+  <h1 class="upper">...</h1>
   <button @click="suggest">Suggeriscimi altre canzoni</button>
 
 </template>
