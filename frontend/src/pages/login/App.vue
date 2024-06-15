@@ -5,9 +5,9 @@ function login() {
 </script>
 
 <template>
-  <h1>Accedi con Spotify</h1>
+  <h1>Login with Spotify</h1>
   <div class="spacer" />
-  <button @click="login">Accedi</button>
+  <button @click="login">Login</button>
 </template>
 
 <style scoped>

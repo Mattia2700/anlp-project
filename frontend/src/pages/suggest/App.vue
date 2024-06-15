@@ -13,10 +13,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <h1>Ti suggerisco queste canzoni: </h1>
+  <h1>I suggest you these songs:</h1>
   <h3 v-for="song in songs" :key="song">{{ song[0] }} - {{ song[1] }}</h3>
   <div class="spacer" />
-  <button>Crea una playlist</button>
+  <button>Create a playlist</button>
 
 </template>
 

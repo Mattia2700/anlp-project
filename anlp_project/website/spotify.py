@@ -1,10 +1,9 @@
+import datetime
 import os
 import re
-import datetime
 
 import torch
-from torch import nn
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 os.environ["SPOTIPY_CLIENT_ID"] = "f516c752459a4b94acba6a768cad9c43"
 os.environ["SPOTIPY_CLIENT_SECRET"] = "641839e196f24feda3341dd5ac972749"
@@ -48,62 +47,77 @@ print(actual_songs)
 
 from lyricsgenius import Genius
 
-genius = Genius(os.environ["GENIUS_CLIENT_ID"])
-genius.remove_section_headers = True
+genius = Genius(os.environ["GENIUS_CLIENT_ID"], remove_section_headers=True)
 
-song = genius.search_song(actual_songs[0][1], actual_songs[0][0], get_full_info=False)
-lyrics = [line for line in song.lyrics.split("\n") if line != ""][1:]
+song = genius.search_song("Sunroof", "Nicky Youre", get_full_info=False)
+# print(song.lyrics)
+lyrics = [line for line in song.lyrics.split("\n")][1:]
 # remove %dEmbed from last line
 lyrics[-1] = re.sub(r"\d*K*Embed", "", lyrics[-1])
 
-song_lyrics = "\n".join(lyrics)
-print(song_lyrics)
+# parts = song.lyrics.split("\n\n")
+# for idx, part in enumerate(parts.copy()):
+#     if idx == 0:
+#         lines = parts[idx].split("\n")
+#         parts[idx] = "\n".join(lines[1:])
+#     elif idx == len(parts) - 1:
+#         # remove the last line that is the artist
+#         lines = parts[idx].split("\n")
+#         lines[-1] = re.sub(r"\d*K*Embed", "", lines[-1])
+#         parts[idx] = "\n".join(lines)
 
+#
+# # model = LyricsClassifier()
+# # model.load_state_dict(torch.load("/test/model.pth", map_location=torch.device("cpu")))
+output_dir = "FacebookAI/roberta-large"
+# # tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+model = AutoModelForSequenceClassification.from_pretrained(output_dir)
+tokenizer = AutoTokenizer.from_pretrained(output_dir)
 
-class LyricsClassifier(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = AutoModel.from_pretrained("FacebookAI/roberta-base").to(
-            self.device
-        )
-        # freeze the model last layer
-        for param in self.model.parameters():
-            param.requires_grad = False
-        self.fc = nn.Linear(self.model.config.hidden_size, 7).to(self.device)
-        self.softmax = nn.Softmax(dim=1).to(self.device)
+print(model)
+exit()
 
-    def forward(self, x):
-        input_ids, attention_mask = x["input_ids"], x["attention_mask"]
-        x = self.model(input_ids, attention_mask).last_hidden_state[:, 0, :]
-        x = self.fc(x)
-        x = self.softmax(x)
-        return x
+# fmt: off
+annotaions = {"anger": "anger", "annoyance": "anger", "disapproval": "anger", "disgust": "disgust", "fear": "fear", "nervousness": "fear", "joy": "joy", "amusement": "joy", "approval": "joy", "excitement": "joy", "gratitude": "joy", "love": "joy", "optimism": "joy", "relief": "joy", "pride": "joy", "admiration": "joy", "desire": "joy", "caring": "joy", "sadness": "sadness", "disappointment": "sadness", "embarrassment": "sadness", "grief": "sadness", "remorse": "sadness", "surprise": "surprise", "realization": "surprise", "confusion": "surprise", "curiosity": "surprise", "neutral": "neutral"}
+old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
+new_order = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
+# fmt: on
 
-
-model = LyricsClassifier()
-model.load_state_dict(torch.load("/test/model.pth", map_location=torch.device("cpu")))
-tokenizer = AutoTokenizer.from_pretrained("FacebookAI/roberta-base")
-
+#
+# # print(model)
+#
 moods = []
-
-# text = tokenizer(song_lyrics, return_tensors="pt", padding="max_length", truncation=True)
-# output = model(text)
-# mood = torch.argmax(output).item()
-# print(mood)
-
-for line in lyrics:
-    text = tokenizer(line, return_tensors="pt", padding="max_length", truncation=True)
-    output = model(text)
-    mood = torch.argmax(output).item()
+#
+# # text = tokenizer(
+# #     "i am glad you came!",
+# #     return_tensors="pt",
+# #     padding="max_length",
+# #     truncation=True,
+# # )
+# # output = model(**text)
+# # print(output.logits)
+# # mood = torch.argmax(output.logits).item()
+# # print(mood)
+#
+for part in lyrics:
+    # print(line)
+    text = tokenizer(part, return_tensors="pt")
+    output = model(**text)
+    # print(output)
+    mood = torch.argmax(output.logits).item()
+    # mood = new_order.index(annotaions[old_order[mood]])
     moods.append(mood)
-    print(line, mood)
-
-# # print the number that appears the most
-# print(max(set(moods), key=moods.count))
-
-
-# # print available genres
+    print(f"{part}\n---\n{mood}\n---\n")
+#
+print(moods)
+print(max(set(moods), key=moods.count))
+moods = [mood for mood in moods if mood != 4]
+# # # print the number that appears the most
+print(moods)
+print(max(set(moods), key=moods.count))
+#
+#
+# # # print available genres
 # print(sp.recommendation_genre_seeds())
 #
 # # 5 genres

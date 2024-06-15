@@ -2,6 +2,7 @@ dataset/
 __pycache__/
 .idea/
 .cache
+.ruff_cache/
 
 frontend/dist/
 
