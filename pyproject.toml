@@ -6,7 +6,7 @@ authors = ["Mattia2700 <mattia2700franzin+dev@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 datasets = "^2.19.1"
 spotipy = "^2.23.0"
 pymusixmatch = "^0.3"

@@ -1,26 +1,19 @@
 import torch
-from lightning import LightningModule
+from pytorch_lightning import LightningModule
 from transformers import AutoModelForSequenceClassification
 
 
 class LyricsClassifier(LightningModule):
-    def __init__(
-        self,
-        model_name,
-        lr,
-        num_labels,
-        additional_layers,
-    ):
+    def __init__(self, model_name, lr, num_labels):
         super().__init__()
         self.model_name = model_name
         self.lr = lr
         self.num_labels = num_labels
-        self.additional_layers = additional_layers
+
         self.model = AutoModelForSequenceClassification.from_pretrained(
             self.model_name,
             num_labels=self.num_labels,
-            problem_type="multi_label_classification",
-        )
+        ).to(self.device)
         self.save_hyperparameters()
 
     def forward(self, x):
