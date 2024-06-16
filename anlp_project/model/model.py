@@ -3,7 +3,7 @@ import os
 from pytorch_lightning import LightningModule
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
-from anlp_project.model.dataset import MELDText
+from anlp_project.model.old_dataset import GoEmotions
 
 
 class LyricsClassifier(LightningModule):
@@ -51,31 +51,28 @@ class LyricsClassifier(LightningModule):
         return loss
 
     def train_dataloader(self):
-        train_data = MELDText("train", self.model_name)
+        train_data = GoEmotions("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
             shuffle=True,
             collate_fn=self.collate_fn,
-            num_workers=os.cpu_count(),
         )
 
     def val_dataloader(self):
-        val_data = MELDText("dev", self.model_name)
+        val_data = GoEmotions("validation", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
             collate_fn=self.collate_fn,
-            num_workers=os.cpu_count(),
         )
     
-    def val_dataloader(self):
-        test_data = MELDText("test", self.model_name)
+    def test_dataloader(self):
+        test_data = GoEmotions("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,
             collate_fn=self.collate_fn,
-            num_workers=os.cpu_count(),
         )
 
     @staticmethod
