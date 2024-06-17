@@ -3,7 +3,7 @@ import os
 from pytorch_lightning import LightningModule
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
-from anlp_project.model.old_dataset import GoEmotions
+from anlp_project.model.dataset import MELDText
 
 
 class LyricsClassifier(LightningModule):
@@ -20,9 +20,9 @@ class LyricsClassifier(LightningModule):
         ).to(self.device)
         self.save_hyperparameters()
 
-    def forward(self, x):
+    def forward(self, x, labels=None):
         input_ids, attention_mask = x["input_ids"], x["attention_mask"]
-        x = self.model(input_ids, attention_mask).logits
+        x = self.model(input_ids, attention_mask, labels=labels)
         return x
 
     def configure_optimizers(self):
@@ -51,7 +51,7 @@ class LyricsClassifier(LightningModule):
         return loss
 
     def train_dataloader(self):
-        train_data = GoEmotions("train", self.model_name)
+        train_data = MELDText("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
@@ -60,7 +60,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def val_dataloader(self):
-        val_data = GoEmotions("validation", self.model_name)
+        val_data = MELDText("dev", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
@@ -68,7 +68,7 @@ class LyricsClassifier(LightningModule):
         )
     
     def test_dataloader(self):
-        test_data = GoEmotions("test", self.model_name)
+        test_data = MELDText("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,

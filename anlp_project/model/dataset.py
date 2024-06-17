@@ -9,7 +9,6 @@ from datasets import load_dataset
 
 class MELDText(Dataset):
     def __init__(self, split: Literal["train", "dev", "test"], model: str):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dataset_path = os.path.join(
             os.path.dirname(__file__), f"../../dataset/{split}_sent_emo.csv"
         )
@@ -34,10 +33,11 @@ class MELDText(Dataset):
         text = self.tokenizer(
             item["Utterance"],
             return_tensors="pt",
-        ).to(self.device)
+        )
         text["input_ids"] = text["input_ids"].squeeze()
         text["attention_mask"] = text["attention_mask"].squeeze()
-        label = self._one_hot_encode(self.order.index(item["Emotion"])).to(self.device)
+        label = torch.Tensor(self.order.index(item["Emotion"]))
+        print(label)
         return text, label
 
     def _one_hot_encode(self, item):
@@ -46,7 +46,6 @@ class MELDText(Dataset):
 
 class GoEmotions(Dataset):
     def __init__(self, split, model_name):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.dataset = load_dataset("go_emotions", "simplified", split=split)
         self.dataset = self.dataset.map(self._drop_id)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -86,3 +85,25 @@ class GoEmotions(Dataset):
 
     def _drop_id(self, item):
         return
+
+class Combined(Dataset):
+    def __init__(self, split: Literal["train", "test"], model_name):
+        dataset_path = os.path.join(
+            os.path.dirname(__file__), f"../../dataset/data_{split}.csv"
+        )
+        self.dataset = pd.read_csv(dataset_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model)
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        item = self.dataset.iloc[idx]
+        text = self.tokenizer(
+            item["Text"],
+            return_tensors="pt",
+        )
+        text["input_ids"] = text["input_ids"].squeeze()
+        text["attention_mask"] = text["attention_mask"].squeeze()
+        label = self.order.index(item["Emotion"])
+        return text, label

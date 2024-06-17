@@ -26,11 +26,11 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 
 
 def main():
-    model_name, lr, num_labels, batch_size = ("FacebookAI/xlm-roberta-large", 1e-3, 7, 16)
+    model_name, lr, num_labels, batch_size = ("FacebookAI/xlm-roberta-large", 1e-3, 7, 256)
     model = LyricsClassifier(model_name, lr, num_labels, batch_size)
     # checkpoint_callback = ModelCheckpoint(dirpath="model", save_top_k=2, monitor="val_loss")
 
-    epochs = 5
+    epochs = 20
 
     logger = WandbLogger(
         project="anlp-project",
