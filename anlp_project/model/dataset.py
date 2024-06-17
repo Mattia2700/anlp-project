@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 from datasets import load_dataset
 
+
 class MELDText(Dataset):
     def __init__(self, split: Literal["train", "dev", "test"], model: str):
         dataset_path = os.path.join(
@@ -36,12 +37,11 @@ class MELDText(Dataset):
         )
         text["input_ids"] = text["input_ids"].squeeze()
         text["attention_mask"] = text["attention_mask"].squeeze()
-        label = torch.Tensor(self.order.index(item["Emotion"]))
-        print(label)
+        label = self._one_hot_encode(item["Emotion"])
         return text, label
 
     def _one_hot_encode(self, item):
-        return torch.Tensor([1 if i == item else 0 for i in range(7)])
+        return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
 
 
 class GoEmotions(Dataset):
@@ -86,13 +86,15 @@ class GoEmotions(Dataset):
     def _drop_id(self, item):
         return
 
+
 class Combined(Dataset):
     def __init__(self, split: Literal["train", "test"], model_name):
         dataset_path = os.path.join(
             os.path.dirname(__file__), f"../../dataset/data_{split}.csv"
         )
         self.dataset = pd.read_csv(dataset_path)
-        self.tokenizer = AutoTokenizer.from_pretrained(model)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.order = ["joy", "sad", "anger", "fear", "neutral"]
 
     def __len__(self):
         return len(self.dataset)
@@ -105,5 +107,8 @@ class Combined(Dataset):
         )
         text["input_ids"] = text["input_ids"].squeeze()
         text["attention_mask"] = text["attention_mask"].squeeze()
-        label = self.order.index(item["Emotion"])
+        label = self._one_hot_encode(item["Emotion"])
         return text, label
+
+    def _one_hot_encode(self, item):
+        return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])

@@ -1,16 +1,9 @@
-import os
-
-import torch
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import StochasticWeightAveraging, LearningRateFinder
+from pytorch_lightning.callbacks import LearningRateFinder
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
 
-from anlp_project.model.dataset import MELDText
 from anlp_project.model.model import LyricsClassifier
-from pytorch_lightning.tuner import Tuner
 
-from transformers import AutoTokenizer
 
 class FineTuneLearningRateFinder(LearningRateFinder):
     def __init__(self, milestones, *args, **kwargs):
@@ -26,7 +19,12 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 
 
 def main():
-    model_name, lr, num_labels, batch_size = ("FacebookAI/xlm-roberta-large", 1e-3, 7, 256)
+    model_name, lr, num_labels, batch_size = (
+        "FacebookAI/xlm-roberta-large",
+        5e-6,
+        7,
+        256,
+    )
     model = LyricsClassifier(model_name, lr, num_labels, batch_size)
     # checkpoint_callback = ModelCheckpoint(dirpath="model", save_top_k=2, monitor="val_loss")
 

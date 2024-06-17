@@ -1,6 +1,6 @@
 import torch
-import os
 from pytorch_lightning import LightningModule
+from torchmetrics import F1Score, Accuracy
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
 from anlp_project.model.dataset import MELDText
@@ -20,6 +20,12 @@ class LyricsClassifier(LightningModule):
         ).to(self.device)
         self.save_hyperparameters()
 
+        self.val_f1 = F1Score(task="multiclass", num_classes=self.num_labels)
+        self.test_f1 = F1Score(task="multiclass", num_classes=self.num_labels)
+
+        self.val_acc = Accuracy(task="multiclass", num_classes=self.num_labels)
+        self.test_acc = Accuracy(task="multiclass", num_classes=self.num_labels)
+
     def forward(self, x, labels=None):
         input_ids, attention_mask = x["input_ids"], x["attention_mask"]
         x = self.model(input_ids, attention_mask, labels=labels)
@@ -33,21 +39,25 @@ class LyricsClassifier(LightningModule):
         x, y = batch
         outputs = self.model(**x, labels=y)
         loss = outputs.loss
-        self.log("train_loss", loss, on_step=True, on_epoch=True)
+        self.log("train/loss", loss, on_step=True, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         outputs = self.model(**x, labels=y)
         loss = outputs.loss
-        self.log("val_loss", loss, on_step=True, on_epoch=True)
+        self.log("val/loss", loss, on_epoch=True)
+        self.log("val/f1", self.val_f1(outputs.logits, y), on_epoch=True)
+        self.log("val/acc", self.val_acc(outputs.logits, y), on_epoch=True)
         return loss
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         outputs = self.model(**x, labels=y)
         loss = outputs.loss
-        self.log("test_loss", loss)
+        self.log("test/loss", loss, on_epoch=True)
+        self.log("test/f1", self.test_f1(outputs.logits, y), on_epoch=True)
+        self.log("test/acc", self.test_acc(outputs.logits, y), on_epoch=True)
         return loss
 
     def train_dataloader(self):
@@ -66,7 +76,7 @@ class LyricsClassifier(LightningModule):
             batch_size=self.batch_size,
             collate_fn=self.collate_fn,
         )
-    
+
     def test_dataloader(self):
         test_data = MELDText("test", self.model_name)
         return DataLoader(
