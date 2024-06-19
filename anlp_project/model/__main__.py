@@ -1,9 +1,11 @@
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import LearningRateFinder
+from pytorch_lightning.callbacks import StochasticWeightAveraging, LearningRateFinder
 from pytorch_lightning.loggers import WandbLogger
 
 from anlp_project.model.model import LyricsClassifier
 
+import torch
+torch.set_float32_matmul_precision("high")
 
 class FineTuneLearningRateFinder(LearningRateFinder):
     def __init__(self, milestones, *args, **kwargs):
@@ -20,15 +22,15 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 
 def main():
     model_name, lr, num_labels, batch_size = (
-        "FacebookAI/xlm-roberta-large",
+        "FacebookAI/xlm-roberta-base",
         5e-6,
         7,
-        256,
+        32,
     )
     model = LyricsClassifier(model_name, lr, num_labels, batch_size)
     # checkpoint_callback = ModelCheckpoint(dirpath="model", save_top_k=2, monitor="val_loss")
 
-    epochs = 20
+    epochs = 10
 
     logger = WandbLogger(
         project="anlp-project",
@@ -38,6 +40,7 @@ def main():
     trainer = Trainer(
         max_epochs=epochs,
         logger=logger,
+        callbacks=[StochasticWeightAveraging(swa_lrs=1e-2),FineTuneLearningRateFinder(range(0, epochs, 2), early_stop_threshold=None)],
     )
 
     logger.experiment.config["batch_size"] = model.batch_size
