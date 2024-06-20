@@ -25,11 +25,19 @@ class LyricsClassifier(LightningModule):
 
         self.save_hyperparameters()
 
-        self.val_f1 = F1Score(task="multiclass", num_classes=self.num_labels, average="macro")
-        self.test_f1 = F1Score(task="multiclass", num_classes=self.num_labels, average="macro")
+        self.val_f1 = F1Score(
+            task="multiclass", num_classes=self.num_labels, average="macro"
+        )
+        self.test_f1 = F1Score(
+            task="multiclass", num_classes=self.num_labels, average="macro"
+        )
 
-        self.val_acc = Accuracy(task="multiclass", num_classes=self.num_labels, average="macro")
-        self.test_acc = Accuracy(task="multiclass", num_classes=self.num_labels, average="macro")
+        self.val_acc = Accuracy(
+            task="multiclass", num_classes=self.num_labels, average="macro"
+        )
+        self.test_acc = Accuracy(
+            task="multiclass", num_classes=self.num_labels, average="macro"
+        )
 
     def forward(self, x, labels=None):
         input_ids, attention_mask = x["input_ids"], x["attention_mask"]
@@ -37,8 +45,15 @@ class LyricsClassifier(LightningModule):
         return x
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        return optimizer
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.1, patience=3, verbose=True
+        )
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": scheduler,
+            "monitor": "val/loss",
+        }
 
     def training_step(self, batch, batch_idx):
         x, y = batch

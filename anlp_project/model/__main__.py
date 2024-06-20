@@ -5,7 +5,9 @@ from pytorch_lightning.loggers import WandbLogger
 from anlp_project.model.model import LyricsClassifier
 
 import torch
+
 torch.set_float32_matmul_precision("high")
+
 
 class FineTuneLearningRateFinder(LearningRateFinder):
     def __init__(self, milestones, *args, **kwargs):
@@ -40,7 +42,10 @@ def main():
     trainer = Trainer(
         max_epochs=epochs,
         logger=logger,
-        callbacks=[StochasticWeightAveraging(swa_lrs=1e-2),FineTuneLearningRateFinder(range(0, epochs, 2), early_stop_threshold=None)],
+        callbacks=[
+            StochasticWeightAveraging(swa_lrs=1e-2),
+        ],
+        auto_lr_find=True,
     )
 
     logger.experiment.config["batch_size"] = model.batch_size

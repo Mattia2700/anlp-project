@@ -33,3 +33,5 @@ dist-ssr
 .cache/
 lightning_logs/
 wandb/
+.lr_find_*
+anlp-project/
