@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 from datasets import load_dataset
+import random
 
 
 class MELDText(Dataset):
@@ -44,7 +45,7 @@ class MELDText(Dataset):
         return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
 
 
-class GoEmotionsNew(Dataset):
+class GoEmotionsGood(Dataset):
     def __init__(self, split, model_name):
         self.dataset = load_dataset("go_emotions", "simplified", split=split)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -79,9 +80,10 @@ class GoEmotionsNew(Dataset):
         if len(labels) > 1 and 6 in labels:
             labels.remove(6)
 
-        labels = labels[0]
-        item["labels"] = torch.Tensor([labels])
+        if len(labels) > 1 and 5 in labels:
+            labels.remove(5)
 
+        item["labels"] = random.choice(labels)
         # print(item["labels"])
         return {k: v for k, v in item.items() if k != "id"}
 

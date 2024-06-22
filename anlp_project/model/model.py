@@ -3,7 +3,7 @@ from pytorch_lightning import LightningModule
 from torchmetrics import F1Score, Accuracy
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
-from anlp_project.model.dataset import GoEmotionsNew
+from anlp_project.model.dataset import GoEmotionsGood
 
 
 class LyricsClassifier(LightningModule):
@@ -18,10 +18,6 @@ class LyricsClassifier(LightningModule):
             self.model_name,
             num_labels=self.num_labels,
         )
-
-        for name, param in self.model.named_parameters():
-            if "classifier" not in name:
-                param.requires_grad = False
 
         self.save_hyperparameters()
 
@@ -44,11 +40,17 @@ class LyricsClassifier(LightningModule):
         x = self.model(input_ids, attention_mask, labels=labels)
         return x
 
+    def on_train_epoch_start(self):
+        # freeze he model after 8 epochs
+        if self.current_epoch == 8:
+            for name, param in self.model.named_parameters():
+                if "classifier" not in name:
+                    param.requires_grad = False
+        
+
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode="min", factor=0.1, patience=3, verbose=True
-        )
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
         return {
             "optimizer": optimizer,
             "lr_scheduler": scheduler,
@@ -78,7 +80,7 @@ class LyricsClassifier(LightningModule):
         return outputs.loss
 
     def train_dataloader(self):
-        train_data = GoEmotionsNew("train", self.model_name)
+        train_data = GoEmotionsGood("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
@@ -88,7 +90,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def val_dataloader(self):
-        val_data = GoEmotionsNew("validation", self.model_name)
+        val_data = GoEmotionsGood("validation", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
@@ -97,7 +99,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def test_dataloader(self):
-        test_data = GoEmotionsNew("test", self.model_name)
+        test_data = GoEmotionsGood("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,

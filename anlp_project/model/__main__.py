@@ -1,4 +1,5 @@
-from pytorch_lightning import Trainer
+from pytorch_lightning.trainer.trainer import Trainer
+from pytorch_lightning.tuner.tuning import Tuner
 from pytorch_lightning.callbacks import StochasticWeightAveraging, LearningRateFinder
 from pytorch_lightning.loggers import WandbLogger
 
@@ -29,14 +30,15 @@ def main():
         7,
         32,
     )
+
     model = LyricsClassifier(model_name, lr, num_labels, batch_size)
     # checkpoint_callback = ModelCheckpoint(dirpath="model", save_top_k=2, monitor="val_loss")
 
-    epochs = 10
+    epochs = 20
 
     logger = WandbLogger(
         project="anlp-project",
-        name=f"{model_name.split('/')[1]}-{batch_size}-{lr}-{num_labels}",
+        name=f"{model_name.split('/')[1]}-{batch_size}-{lr}-{num_labels}-{epochs}",
     )
 
     trainer = Trainer(
@@ -45,8 +47,9 @@ def main():
         callbacks=[
             StochasticWeightAveraging(swa_lrs=1e-2),
         ],
-        auto_lr_find=True,
     )
+    # tuner = Tuner(trainer)
+    # tuner.lr_find(model)
 
     logger.experiment.config["batch_size"] = model.batch_size
 
@@ -64,3 +67,6 @@ def main():
     #     val = model(tok)
     #     print(val)
     #     text = input()
+
+if __name__ == "__main__":
+    main()
