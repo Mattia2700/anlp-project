@@ -17,24 +17,28 @@ class LyricsClassifier(LightningModule):
         self.model = AutoModelForSequenceClassification.from_pretrained(
             self.model_name,
             num_labels=self.num_labels,
-            problem_type="multi_label_classification",
         )
 
         self.save_hyperparameters()
 
         self.val_f1 = F1Score(
-            task="multilabel", num_labels=self.num_labels, average="macro"
+            task="multiclass", num_classes=self.num_labels, average="macro"
         )
         self.test_f1 = F1Score(
-            task="multilabel", num_labels=self.num_labels, average="macro"
+            task="multiclass", num_classes=self.num_labels, average="macro"
         )
 
         self.val_acc = Accuracy(
-            task="multilabel", num_labels=self.num_labels, average="macro"
+            task="multiclass", num_classes=self.num_labels, average="macro"
         )
         self.test_acc = Accuracy(
-            task="multilabel", num_labels=self.num_labels, average="macro"
+            task="multiclass", num_classes=self.num_labels, average="macro"
         )
+
+    def forward(self, x, labels=None):
+        input_ids, attention_mask = x["input_ids"], x["attention_mask"]
+        x = self.model(input_ids, attention_mask, labels=labels)
+        return x
 
     def on_train_epoch_start(self):
         # freeze he model after 8 epochs
