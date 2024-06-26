@@ -44,9 +44,9 @@ def main():
     trainer = Trainer(
         max_epochs=epochs,
         logger=logger,
-        callbacks=[
-            StochasticWeightAveraging(swa_lrs=1e-2),
-        ],
+        # callbacks=[
+        #     StochasticWeightAveraging(swa_lrs=1e-2),
+        # ],
     )
     # tuner = Tuner(trainer)
     # tuner.lr_find(model)

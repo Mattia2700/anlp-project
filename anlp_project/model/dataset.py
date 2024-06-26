@@ -47,8 +47,10 @@ class MELDText(Dataset):
 
 class GoEmotionsGood(Dataset):
     def __init__(self, split, model_name):
-        self.dataset = load_dataset("go_emotions", "simplified", split=split)
+        self.split = split
+        self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        # if self.split != "train":
         # fmt: off
         self.annotaions = {"anger": "anger", "annoyance": "anger", "disapproval": "anger", "disgust": "disgust", "fear": "fear", "nervousness": "fear", "joy": "joy", "amusement": "joy", "approval": "joy", "excitement": "joy", "gratitude": "joy", "love": "joy", "optimism": "joy", "relief": "joy", "pride": "joy", "admiration": "joy", "desire": "joy", "caring": "joy", "sadness": "sadness", "disappointment": "sadness", "embarrassment": "sadness", "grief": "sadness", "remorse": "sadness", "surprise": "surprise", "realization": "surprise", "confusion": "surprise", "curiosity": "surprise", "neutral": "neutral"}
         self.old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
@@ -68,6 +70,9 @@ class GoEmotionsGood(Dataset):
         return text, label
 
     def _reduce_labels(self, item):
+
+        # if self.split == "train":
+
         labels = list(
             set(
                 [
@@ -77,15 +82,22 @@ class GoEmotionsGood(Dataset):
             )
         )
 
-        if len(labels) > 1 and 6 in labels:
-            labels.remove(6)
+        # if len(labels) > 1 and 6 in labels:
+        #     labels.remove(6)
 
-        if len(labels) > 1 and 5 in labels:
-            labels.remove(5)
+        # if len(labels) > 1 and 5 in labels:
+        #     labels.remove(5)
 
-        item["labels"] = random.choice(labels)
+        # item["labels"] = random.choice(labels)
         # print(item["labels"])
-        return {k: v for k, v in item.items() if k != "id"}
+        item["labels"] = self._one_hot_encode(labels)
+        
+
+        return {k: v for k, v in item.items() if k != "_id"}
+
+    def _one_hot_encode(self, item: list):
+        # set to 1 if the label is in the list
+        return [1. if i in item else 0. for i in range(len(self.new_order))]
 
 
 class Combined(Dataset):
