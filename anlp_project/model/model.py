@@ -3,7 +3,7 @@ from pytorch_lightning import LightningModule
 from torchmetrics import F1Score, Accuracy
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
-from anlp_project.model.dataset import GoEmotionsGood
+from anlp_project.model.dataset import GoEmotionsWhy
 
 
 class LyricsClassifier(LightningModule):
@@ -17,22 +17,23 @@ class LyricsClassifier(LightningModule):
         self.model = AutoModelForSequenceClassification.from_pretrained(
             self.model_name,
             num_labels=self.num_labels,
+            problem_type="multi_label_classification",
         )
 
         self.save_hyperparameters()
 
         self.val_f1 = F1Score(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
         self.test_f1 = F1Score(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
 
         self.val_acc = Accuracy(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
         self.test_acc = Accuracy(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
 
     def forward(self, x, labels=None):
@@ -59,13 +60,13 @@ class LyricsClassifier(LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        outputs = self.model(**x, labels=y.float())
+        outputs = self(x, labels=y.float())
         self.log("train/loss", outputs.loss, on_step=True, on_epoch=True)
         return outputs.loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        outputs = self.model(**x, labels=y.float())
+        outputs = self(x, labels=y.float())
         self.log("val/loss", outputs.loss, on_epoch=True)
         self.log("val/f1-macro", self.val_f1(outputs.logits, y), on_epoch=True)
         self.log("val/acc-macro", self.val_acc(outputs.logits, y), on_epoch=True)
@@ -73,14 +74,14 @@ class LyricsClassifier(LightningModule):
 
     def test_step(self, batch, batch_idx):
         x, y = batch
-        outputs = self.model(**x, labels=y.float())
+        outputs = self(x, labels=y.float())
         self.log("test/loss", outputs.loss, on_epoch=True)
         self.log("test/f1-macro", self.test_f1(outputs.logits, y), on_epoch=True)
         self.log("test/acc-macro", self.test_acc(outputs.logits, y), on_epoch=True)
         return outputs.loss
 
     def train_dataloader(self):
-        train_data = GoEmotionsGood("train", self.model_name)
+        train_data = GoEmotionsWhy("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
@@ -90,7 +91,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def val_dataloader(self):
-        val_data = GoEmotionsGood("validation", self.model_name)
+        val_data = GoEmotionsWhy("validation", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
@@ -99,7 +100,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def test_dataloader(self):
-        test_data = GoEmotionsGood("test", self.model_name)
+        test_data = GoEmotionsWhy("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,
