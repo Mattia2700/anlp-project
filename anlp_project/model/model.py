@@ -3,7 +3,7 @@ from pytorch_lightning import LightningModule
 from torchmetrics import F1Score, Accuracy
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
-from anlp_project.model.dataset import GoEmotionsWhy
+from anlp_project.model.dataset import GoEmotionsBack
 
 
 class LyricsClassifier(LightningModule):
@@ -81,7 +81,7 @@ class LyricsClassifier(LightningModule):
         return outputs.loss
 
     def train_dataloader(self):
-        train_data = GoEmotionsWhy("train", self.model_name)
+        train_data = GoEmotionsBack("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
@@ -91,7 +91,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def val_dataloader(self):
-        val_data = GoEmotionsWhy("validation", self.model_name)
+        val_data = GoEmotionsBack("validation", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
@@ -100,7 +100,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def test_dataloader(self):
-        test_data = GoEmotionsWhy("test", self.model_name)
+        test_data = GoEmotionsBack("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,

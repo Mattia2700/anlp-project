@@ -26,7 +26,7 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 def main():
     model_name, lr, num_labels, batch_size = (
         "FacebookAI/xlm-roberta-base",
-        5e-6,
+        5e-5,
         7,
         32,
     )

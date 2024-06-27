@@ -45,7 +45,7 @@ class MELDText(Dataset):
         return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
 
 
-class GoEmotionsWhy(Dataset):
+class GoEmotionsBack(Dataset):
     def __init__(self, split, model_name):
         self.split = split
         self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
