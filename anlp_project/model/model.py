@@ -23,22 +23,24 @@ class LyricsClassifier(LightningModule):
         self.save_hyperparameters()
 
         self.val_f1 = F1Score(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
         self.test_f1 = F1Score(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
 
         self.val_acc = Accuracy(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
         self.test_acc = Accuracy(
-            task="multiclass", num_classes=self.num_labels, average="macro"
+            task="multilabel", num_labels=self.num_labels, average="macro"
         )
 
     def forward(self, x, labels=None):
         input_ids, attention_mask = x["input_ids"], x["attention_mask"]
         x = self.model(input_ids, attention_mask, labels=labels)
+        if labels is None:
+            x = torch.sigmoid(x.logits).squeeze()
         return x
 
     def on_train_epoch_start(self):
@@ -47,7 +49,6 @@ class LyricsClassifier(LightningModule):
             for name, param in self.model.named_parameters():
                 if "classifier" not in name:
                     param.requires_grad = False
-        
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)

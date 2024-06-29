@@ -3,7 +3,9 @@ import os
 import re
 
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoTokenizer
+
+from anlp_project.model.model import LyricsClassifier
 
 os.environ["SPOTIPY_CLIENT_ID"] = "f516c752459a4b94acba6a768cad9c43"
 os.environ["SPOTIPY_CLIENT_SECRET"] = "641839e196f24feda3341dd5ac972749"
@@ -49,11 +51,14 @@ from lyricsgenius import Genius
 
 genius = Genius(os.environ["GENIUS_CLIENT_ID"], remove_section_headers=True)
 
-song = genius.search_song("Sunroof", "Nicky Youre", get_full_info=False)
+song = genius.search_song("Sinceramente", "Annalisa", get_full_info=False)
 # print(song.lyrics)
 lyrics = [line for line in song.lyrics.split("\n")][1:]
 # remove %dEmbed from last line
 lyrics[-1] = re.sub(r"\d*K*Embed", "", lyrics[-1])
+
+# filter empty lines
+lyrics = [line for line in lyrics if line != ""]
 
 # parts = song.lyrics.split("\n\n")
 # for idx, part in enumerate(parts.copy()):
@@ -69,13 +74,11 @@ lyrics[-1] = re.sub(r"\d*K*Embed", "", lyrics[-1])
 #
 # # model = LyricsClassifier()
 # # model.load_state_dict(torch.load("/test/model.pth", map_location=torch.device("cpu")))
-output_dir = "FacebookAI/roberta-large"
+output_dir = "FacebookAI/xlm-roberta-base"
+checkpoint = "/home/dhilab-mattia/Downloads/epoch=19-step=27140.ckpt"
 # # tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-model = AutoModelForSequenceClassification.from_pretrained(output_dir)
+model = LyricsClassifier.load_from_checkpoint(checkpoint)
 tokenizer = AutoTokenizer.from_pretrained(output_dir)
-
-print(model)
-exit()
 
 # fmt: off
 annotaions = {"anger": "anger", "annoyance": "anger", "disapproval": "anger", "disgust": "disgust", "fear": "fear", "nervousness": "fear", "joy": "joy", "amusement": "joy", "approval": "joy", "excitement": "joy", "gratitude": "joy", "love": "joy", "optimism": "joy", "relief": "joy", "pride": "joy", "admiration": "joy", "desire": "joy", "caring": "joy", "sadness": "sadness", "disappointment": "sadness", "embarrassment": "sadness", "grief": "sadness", "remorse": "sadness", "surprise": "surprise", "realization": "surprise", "confusion": "surprise", "curiosity": "surprise", "neutral": "neutral"}
@@ -86,7 +89,7 @@ new_order = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"
 #
 # # print(model)
 #
-moods = []
+moods = [0] * len(new_order)
 #
 # # text = tokenizer(
 # #     "i am glad you came!",
@@ -102,19 +105,32 @@ moods = []
 for part in lyrics:
     # print(line)
     text = tokenizer(part, return_tensors="pt")
-    output = model(**text)
+    output = model(text)
     # print(output)
-    mood = torch.argmax(output.logits).item()
+    logits = torch.sigmoid(output.logits).squeeze()
+    # get indexes of values that are greater than 0.5
+    mask = logits > 0.5
+    indeces = torch.nonzero(mask)
+    values = logits[mask]
+    # filter empty values
+    # print(indeces, indeces.numel())
+
+    if indeces.numel() == 0:
+        continue
+    # print(logits, indeces, values)
+    # add values to indeces in moods
+    for idx, value in zip(indeces, values):
+        moods[idx] += value.item()
     # mood = new_order.index(annotaions[old_order[mood]])
-    moods.append(mood)
-    print(f"{part}\n---\n{mood}\n---\n")
+    # moods.append(mood)
+    # moods = [mood + value for mood, value in zip(moods, value)]
+    print(f"{part}\n---\n{logits}\n---\n")
 #
+# print(max(set(moods), key=moods.count))
+# moods = [mood for mood in moods if mood != 4]
+# # # # print the number that appears the most
 print(moods)
-print(max(set(moods), key=moods.count))
-moods = [mood for mood in moods if mood != 4]
-# # # print the number that appears the most
-print(moods)
-print(max(set(moods), key=moods.count))
+# print(max(set(moods), key=moods.count))
 #
 #
 # # # print available genres

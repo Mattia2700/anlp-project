@@ -10,13 +10,20 @@ onMounted(async () => {
   songs.value = await fetch(`/api/recent?code=${code}`).then((res) => res.json()).then((data) => data.songs);
 });
 
+async function create() {
+  await fetch('/api/suggest', {
+    method: 'POST',
+    body: JSON.stringify({songs: songs.value}),
+  });
+}
+
 </script>
 
 <template>
   <h1>I suggest you these songs:</h1>
   <h3 v-for="song in songs" :key="song">{{ song[0] }} - {{ song[1] }}</h3>
   <div class="spacer" />
-  <button>Create a playlist</button>
+  <button @click="create">Create a playlist</button>
 
 </template>
 

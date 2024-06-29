@@ -1,0 +1,6 @@
+lightning_logs/
+static/
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+.cache
