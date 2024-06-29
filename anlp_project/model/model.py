@@ -61,13 +61,13 @@ class LyricsClassifier(LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        outputs = self(x, labels=y)
+        outputs = self(x, labels=y.float())
         self.log("train/loss", outputs.loss, on_step=True, on_epoch=True)
         return outputs.loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        outputs = self(x, labels=y)
+        outputs = self(x, labels=y.float())
         self.log("val/loss", outputs.loss, on_epoch=True)
         self.log("val/f1-macro", self.val_f1(outputs.logits, y), on_epoch=True)
         self.log("val/acc-macro", self.val_acc(outputs.logits, y), on_epoch=True)
@@ -75,14 +75,14 @@ class LyricsClassifier(LightningModule):
 
     def test_step(self, batch, batch_idx):
         x, y = batch
-        outputs = self(x, labels=y)
+        outputs = self(x, labels=y.float())
         self.log("test/loss", outputs.loss, on_epoch=True)
         self.log("test/f1-macro", self.test_f1(outputs.logits, y), on_epoch=True)
         self.log("test/acc-macro", self.test_acc(outputs.logits, y), on_epoch=True)
         return outputs.loss
 
     def train_dataloader(self):
-        train_data = MELDText("train", self.model_name)
+        train_data = GoEmotionsBack("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
@@ -92,7 +92,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def val_dataloader(self):
-        val_data = MELDText("dev", self.model_name)
+        val_data = GoEmotionsBack("validation", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
@@ -101,7 +101,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def test_dataloader(self):
-        test_data = MELDText("test", self.model_name)
+        test_data = GoEmotionsBack("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,

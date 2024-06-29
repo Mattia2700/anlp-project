@@ -68,14 +68,14 @@ class GoEmotionsBack(Dataset):
         return text, label
 
     def _reduce_labels(self, item):
-        labels = list(
-            set(
-                [
-                    self.new_order.index(self.annotaions[self.old_order[label]])
-                    for label in item["labels"]
-                ]
-            )
-        )
+        # labels = list(
+        #     set(
+        #         [
+        #             self.new_order.index(self.annotaions[self.old_order[label]])
+        #             for label in item["labels"]
+        #         ]
+        #     )
+        # )
 
         # if len(labels) > 1 and 6 in labels:
         #     labels.remove(6)
@@ -84,12 +84,12 @@ class GoEmotionsBack(Dataset):
         #     labels.remove(5)
 
         # item["labels"] = random.choice(labels)
-        item["labels"] = self._one_hot_encode(labels)
+        item["labels"] = self._one_hot_encode(item["labels"])
 
         return {k: v for k, v in item.items() if k != "_id"}
 
     def _one_hot_encode(self, item):
-        return [1. if i in item else 0. for i in range(len(self.new_order))]
+        return [1.0 if i in item else 0.0 for i in range(len(self.old_order))]
 
 
 class Combined(Dataset):
