@@ -39,8 +39,8 @@ class LyricsClassifier(LightningModule):
     def forward(self, x, labels=None):
         input_ids, attention_mask = x["input_ids"], x["attention_mask"]
         x = self.model(input_ids, attention_mask, labels=labels)
-        if labels is None:
-            x = torch.sigmoid(x.logits).squeeze()
+        # if labels is None:
+        #     x = torch.sigmoid(x.logits).squeeze()
         return x
 
     def on_train_epoch_start(self):

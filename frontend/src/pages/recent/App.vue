@@ -36,7 +36,7 @@ async function get_mood() {
 }
 
 function suggest() {
-  window.location.href = 'http://localhost:5000/suggest';
+  window.location.href = `http://localhost:5000/suggest?mood=${mood.value}`;
 }
 
 </script>
