@@ -34,7 +34,7 @@ def main():
     model = LyricsClassifier(model_name, lr, num_labels, batch_size)
     # checkpoint_callback = ModelCheckpoint(dirpath="model", save_top_k=2, monitor="val_loss")
 
-    epochs = 20
+    epochs = 12
 
     logger = WandbLogger(
         project="anlp-project",

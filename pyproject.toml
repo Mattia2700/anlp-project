@@ -16,6 +16,7 @@ lightning = "^2.3.0"
 torch = "2.2.1"
 wandb = "^0.17.1"
 numpy = "==1.*"
+click = "^8.1.7"
 
 [tool.poetry.scripts]
 main = "anlp_project.model.__main__:main"

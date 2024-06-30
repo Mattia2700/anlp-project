@@ -44,7 +44,7 @@ class MELDText(Dataset):
         return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
 
 
-class GoEmotionsGood(Dataset):
+class GoEmotionsMultiLabel(Dataset):
     def __init__(self, split, model_name):
         self.split = split
         self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
@@ -55,9 +55,6 @@ class GoEmotionsGood(Dataset):
         self.new_order = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
         # fmt: on
         # keep only the labels that are not [27]
-        self.dataset = self.dataset.filter(
-            lambda x: x["labels"] != [27]
-        )
 
         self.dataset = self.dataset.map(self._reduce_labels)
 
@@ -66,21 +63,21 @@ class GoEmotionsGood(Dataset):
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        text = self.tokenizer(item["text"], return_tensors="pt")
+        text = self.tokenizer(item["text"], return_tensors="pt", truncation=True)
         # [x,1,4096] to [x,4096]
         text = {k: v.squeeze() for k, v in text.items()}
         label = torch.Tensor([item["labels"]]).squeeze()
         return text, label
 
     def _reduce_labels(self, item):
-        # labels = list(
-        #     set(
-        #         [
-        #             self.new_order.index(self.annotaions[self.old_order[label]])
-        #             for label in item["labels"]
-        #         ]
-        #     )
-        # )
+        labels = list(
+            set(
+                [
+                    self.new_order.index(self.annotaions[self.old_order[label]])
+                    for label in item["labels"]
+                ]
+            )
+        )
 
         # if len(labels) > 1 and 6 in labels:
         #     labels.remove(6)

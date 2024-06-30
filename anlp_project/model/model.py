@@ -1,12 +1,13 @@
 import torch
+from huggingface_hub import PyTorchModelHubMixin
 from pytorch_lightning import LightningModule
 from torchmetrics import F1Score, Accuracy
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
-from anlp_project.model.dataset import GoEmotionsGood, MELDText
+from anlp_project.model.dataset import GoEmotionsMultiLabel, MELDText
 
 
-class LyricsClassifier(LightningModule):
+class LyricsClassifier(LightningModule, PyTorchModelHubMixin):
     def __init__(self, model_name, lr, num_labels, batch_size):
         super().__init__()
         self.model_name = model_name
@@ -82,7 +83,7 @@ class LyricsClassifier(LightningModule):
         return outputs.loss
 
     def train_dataloader(self):
-        train_data = GoEmotionsGood("train", self.model_name)
+        train_data = GoEmotionsMultiLabel("train", self.model_name)
         return DataLoader(
             train_data,
             batch_size=self.batch_size,
@@ -92,7 +93,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def val_dataloader(self):
-        val_data = GoEmotionsGood("validation", self.model_name)
+        val_data = GoEmotionsMultiLabel("validation", self.model_name)
         return DataLoader(
             val_data,
             batch_size=self.batch_size,
@@ -101,7 +102,7 @@ class LyricsClassifier(LightningModule):
         )
 
     def test_dataloader(self):
-        test_data = GoEmotionsGood("test", self.model_name)
+        test_data = GoEmotionsMultiLabel("test", self.model_name)
         return DataLoader(
             test_data,
             batch_size=self.batch_size,
