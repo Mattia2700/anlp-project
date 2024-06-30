@@ -44,7 +44,7 @@ class MELDText(Dataset):
         return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
 
 
-class GoEmotionsBack(Dataset):
+class GoEmotionsGood(Dataset):
     def __init__(self, split, model_name):
         self.split = split
         self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
@@ -54,6 +54,11 @@ class GoEmotionsBack(Dataset):
         self.old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
         self.new_order = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
         # fmt: on
+        # keep only the labels that are not [27]
+        self.dataset = self.dataset.filter(
+            lambda x: x["labels"] != [27]
+        )
+
         self.dataset = self.dataset.map(self._reduce_labels)
 
     def __len__(self):
@@ -64,7 +69,7 @@ class GoEmotionsBack(Dataset):
         text = self.tokenizer(item["text"], return_tensors="pt")
         # [x,1,4096] to [x,4096]
         text = {k: v.squeeze() for k, v in text.items()}
-        label = torch.Tensor([item["labels"]])
+        label = torch.Tensor([item["labels"]]).squeeze()
         return text, label
 
     def _reduce_labels(self, item):
@@ -89,7 +94,7 @@ class GoEmotionsBack(Dataset):
         return {k: v for k, v in item.items() if k != "_id"}
 
     def _one_hot_encode(self, item):
-        return [1.0 if i in item else 0.0 for i in range(len(self.old_order))]
+        return [1. if i in item else 0. for i in range(len(self.new_order))]
 
 
 class Combined(Dataset):
