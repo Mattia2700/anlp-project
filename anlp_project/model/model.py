@@ -1,18 +1,17 @@
 import torch
-from huggingface_hub import PyTorchModelHubMixin
 from pytorch_lightning import LightningModule
 from torchmetrics import F1Score, Accuracy
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
 from anlp_project.model.dataset import (
-    GoEmotionsMultiLabelTest,
+    GoEmotionsMultiLabel,
     GoEmotionsMultiClass,
     MELDText,
 )
 
 
 class LyricsClassifier(LightningModule):
-    def __init__(self, model_name, lr, num_labels, batch_size, dataset="goemotions"):
+    def __init__(self, model_name, lr, num_labels, batch_size, dataset):
         super().__init__()
         self.model_name = model_name
         self.lr = lr
@@ -29,7 +28,7 @@ class LyricsClassifier(LightningModule):
             )
 
         if self.variant == "multilabel":
-            self.dataset_class = GoEmotionsMultiLabelTest
+            self.dataset_class = GoEmotionsMultiLabel
         elif self.variant == "multiclass" and dataset == "goemotions":
             self.dataset_class = GoEmotionsMultiClass
         elif self.variant == "multiclass" and dataset == "meld":

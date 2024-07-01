@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse, FileResponse
 from starlette.staticfiles import StaticFiles
 
+from anlp_project.website.inference import MoodHelper
 
 os.environ["SPOTIPY_CLIENT_ID"] = "f516c752459a4b94acba6a768cad9c43"
 os.environ["SPOTIPY_CLIENT_SECRET"] = "641839e196f24feda3341dd5ac972749"
@@ -73,9 +74,8 @@ def get_recent(request: Request):
 @app.post("/api/mood")
 async def get_mood(request: Request):
     songs = await request.json()
-    # emotion = MoodHelper.get_mood(songs["songs"])
-    # return {"mood": emotion}
-    return {"mood": "sadness"}
+    emotion = MoodHelper.get_mood(songs["songs"])
+    return {"mood": emotion}
 
 
 @app.post("/api/suggest")

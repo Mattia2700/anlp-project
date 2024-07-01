@@ -7,6 +7,7 @@ from anlp_project.model.model import LyricsClassifier
 
 import torch
 
+
 torch.set_float32_matmul_precision("high")
 
 
@@ -36,7 +37,6 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 @click.option("--dataset", default="goemotions", help="Dataset to use")
 @click.command()
 def main(train, epochs, model_name, lr, num_labels, batch_size, dataset):
-
     model = LyricsClassifier(model_name, lr, num_labels, batch_size, dataset)
 
     logger = WandbLogger(
@@ -49,7 +49,7 @@ def main(train, epochs, model_name, lr, num_labels, batch_size, dataset):
         logger=logger,
     )
 
-    logger.experiment.config["batch_size"] = model.batch_size
+    # logger.experiment.config["batch_size"] = model.batch_size
 
     if train:
         trainer.fit(model, model.train_dataloader(), model.val_dataloader())

@@ -29,9 +29,6 @@ class MoodHelper:
             for line in lyrics:
                 encoded = MoodHelper.tokenizer(line, return_tensors="pt")
                 logits = MoodHelper.model(encoded)
-                print(line)
-                print(logits)
-                print("----")
                 indexes = torch.nonzero(logits > MoodHelper.threshold)
                 values = logits[logits > MoodHelper.threshold]
 
@@ -40,8 +37,6 @@ class MoodHelper:
 
                 for idx, value in zip(indexes, values):
                     moods[idx] += value.item()
-
-        print(moods)
 
         # get top 2 moods
         top_moods = sorted(
