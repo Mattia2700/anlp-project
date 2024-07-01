@@ -23,15 +23,13 @@ class LyricsClassifier(LightningModule):
         elif "multiclass" in model_name:
             self.variant = "multiclass"
         else:
-            raise ValueError(
-                "Model name should contain either 'multilabel' or 'multiclass'"
-            )
+            self.variant = "multiclass"
 
         if self.variant == "multilabel":
             self.dataset_class = GoEmotionsMultiLabel
         elif self.variant == "multiclass" and dataset == "goemotions":
             self.dataset_class = GoEmotionsMultiClass
-        elif self.variant == "multiclass" and dataset == "meld":
+        elif dataset == "meld":
             self.dataset_class = MELDText
         else:
             raise ValueError("Invalid dataset")

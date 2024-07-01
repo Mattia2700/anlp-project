@@ -1,7 +1,6 @@
 import click
 from pytorch_lightning.trainer.trainer import Trainer
 from pytorch_lightning.callbacks import LearningRateFinder
-from pytorch_lightning.loggers import WandbLogger
 
 from anlp_project.model.model import LyricsClassifier
 
@@ -39,14 +38,14 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 def main(train, epochs, model_name, lr, num_labels, batch_size, dataset):
     model = LyricsClassifier(model_name, lr, num_labels, batch_size, dataset)
 
-    logger = WandbLogger(
-        project="anlp-project",
-        name=f"{model_name.split('/')[1]}-{batch_size}-{lr}-{num_labels}-{epochs}",
-    )
+    # logger = WandbLogger(
+    #     project="anlp-project",
+    #     name=f"{model_name.split('/')[1]}-{batch_size}-{lr}-{num_labels}-{epochs}",
+    # )
 
     trainer = Trainer(
         max_epochs=epochs,
-        logger=logger,
+        # logger=logger,
     )
 
     # logger.experiment.config["batch_size"] = model.batch_size

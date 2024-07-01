@@ -1,5 +1,4 @@
 import os
-from typing import Literal
 
 import pandas as pd
 import torch
@@ -11,15 +10,20 @@ import random
 
 
 class MELDText(Dataset):
-    def __init__(self, split: Literal["train", "dev", "test"], model_name: str):
+    def __init__(self, split, model_name: str):
         dataset_path = os.path.join(
             os.path.dirname(__file__), f"../../dataset/{split}_sent_emo.csv"
         )
         self.dataset = pd.read_csv(dataset_path)
         self.dataset = self.dataset[["Utterance", "Emotion"]]
         self.author = "FacebookAI" if "bigbird" not in model_name else "google"
-        self.tokenizer = AutoTokenizer.from_pretrained(
+        self.info = (
             self.author + "/" + "-".join(model_name.split("/")[-1].split("-")[:-3])
+            if len(model_name.split("/")[-1].split("-")) > 4
+            else model_name
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.info,
         )
         self.order = [
             "anger",
@@ -51,9 +55,12 @@ class GoEmotionsMultiLabel(Dataset):
         self.split = split
         self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
         self.author = "FacebookAI" if "bigbird" not in model_name else "google"
-        self.tokenizer = AutoTokenizer.from_pretrained(
+        self.info = (
             self.author + "/" + "-".join(model_name.split("/")[-1].split("-")[:-3])
+            if len(model_name.split("/")[-1].split("-")) > 4
+            else model_name
         )
+        self.tokenizer = AutoTokenizer.from_pretrained(self.info)
         # fmt: off
         self.annotaions = {"anger": "anger", "annoyance": "anger", "disapproval": "anger", "disgust": "disgust", "fear": "fear", "nervousness": "fear", "joy": "joy", "amusement": "joy", "approval": "joy", "excitement": "joy", "gratitude": "joy", "love": "joy", "optimism": "joy", "relief": "joy", "pride": "joy", "admiration": "joy", "desire": "joy", "caring": "joy", "sadness": "sadness", "disappointment": "sadness", "embarrassment": "sadness", "grief": "sadness", "remorse": "sadness", "surprise": "surprise", "realization": "surprise", "confusion": "surprise", "curiosity": "surprise", "neutral": "neutral"}
         self.old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
@@ -95,9 +102,12 @@ class GoEmotionsMultiClass(Dataset):
         self.split = split
         self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
         self.author = "FacebookAI" if "bigbird" not in model_name else "google"
-        self.tokenizer = AutoTokenizer.from_pretrained(
+        self.info = (
             self.author + "/" + "-".join(model_name.split("/")[-1].split("-")[:-3])
+            if len(model_name.split("/")[-1].split("-")) > 4
+            else model_name
         )
+        self.tokenizer = AutoTokenizer.from_pretrained(self.info)
         # fmt: off
         self.annotaions = {"anger": "anger", "annoyance": "anger", "disapproval": "anger", "disgust": "disgust", "fear": "fear", "nervousness": "fear", "joy": "joy", "amusement": "joy", "approval": "joy", "excitement": "joy", "gratitude": "joy", "love": "joy", "optimism": "joy", "relief": "joy", "pride": "joy", "admiration": "joy", "desire": "joy", "caring": "joy", "sadness": "sadness", "disappointment": "sadness", "embarrassment": "sadness", "grief": "sadness", "remorse": "sadness", "surprise": "surprise", "realization": "surprise", "confusion": "surprise", "curiosity": "surprise", "neutral": "neutral"}
         self.old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
