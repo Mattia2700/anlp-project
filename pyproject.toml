@@ -23,7 +23,6 @@ main = "anlp_project.model.__main__:main"
 webserver = "anlp_project.website.api:main"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
 ruff = "^0.4.9"
 ruff-lsp = "^0.0.53"
 
