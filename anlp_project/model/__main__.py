@@ -1,6 +1,6 @@
+import click
 from pytorch_lightning.trainer.trainer import Trainer
-from pytorch_lightning.tuner.tuning import Tuner
-from pytorch_lightning.callbacks import StochasticWeightAveraging, LearningRateFinder
+from pytorch_lightning.callbacks import LearningRateFinder
 from pytorch_lightning.loggers import WandbLogger
 
 from anlp_project.model.model import LyricsClassifier
@@ -23,18 +23,21 @@ class FineTuneLearningRateFinder(LearningRateFinder):
             self.lr_find(trainer, pl_module)
 
 
-def main():
-    model_name, lr, num_labels, batch_size = (
-        "google/bigbird-roberta-base",
-        5e-6,
-        7,
-        32,
-    )
+@click.option("--train", is_flag=True, default=False, help="Whether to train the model")
+@click.option("--epochs", default=12, help="Number of epochs to train the model")
+@click.option(
+    "--model-name",
+    default="Franzin/xlm-roberta-base-goemotions-ekman-multilabel",
+    help="Model name",
+)
+@click.option("--lr", default=5e-6, help="Learning rate")
+@click.option("--num-labels", default=7, help="Number of labels")
+@click.option("--batch-size", default=32, help="Batch size")
+@click.option("--dataset", default="goemotions", help="Dataset to use")
+@click.command()
+def main(train, epochs, model_name, lr, num_labels, batch_size, dataset):
 
-    model = LyricsClassifier(model_name, lr, num_labels, batch_size)
-    # checkpoint_callback = ModelCheckpoint(dirpath="model", save_top_k=2, monitor="val_loss")
-
-    epochs = 12
+    model = LyricsClassifier(model_name, lr, num_labels, batch_size, dataset)
 
     logger = WandbLogger(
         project="anlp-project",
@@ -44,31 +47,15 @@ def main():
     trainer = Trainer(
         max_epochs=epochs,
         logger=logger,
-        # callbacks=[
-        #     StochasticWeightAveraging(swa_lrs=1e-2),
-        # ],
     )
-    # tuner = Tuner(trainer)
-    # tuner.lr_find(model)
 
     logger.experiment.config["batch_size"] = model.batch_size
 
-    trainer.fit(model, model.train_dataloader(), model.val_dataloader())
+    if train:
+        trainer.fit(model, model.train_dataloader(), model.val_dataloader())
+
     trainer.test(model, model.test_dataloader())
-    # model = LyricsClassifier.load_from_checkpoint("/teamspace/studios/this_studio/anlp-project/anlp-project/frtm0jqj/checkpoints/epoch=19-step=3047.ckpt")
-    # model.eval()
-    # tokenizer = AutoTokenizer.from_pretrained("FacebookAI/xlm-roberta-large")
 
-    # text = input()
-
-    # while text != "exit":
-    #     print(text)
-    #     tok = tokenizer(text, return_tensors="pt")
-    #     val = model(tok)
-    #     print(val)
-    #     text = input()
-
-    model.push_to_hub("Franzin/big-bird-roberta-base-goemotions-ekman-multiclass")
 
 if __name__ == "__main__":
     main()

@@ -46,7 +46,7 @@ class MELDText(Dataset):
         return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
 
 
-class GoEmotionsMultiLabel(Dataset):
+class GoEmotionsMultiLabelTest(Dataset):
     def __init__(self, split, model_name):
         self.split = split
         self.dataset = load_dataset("go_emotions", "simplified", split=self.split)
@@ -56,8 +56,6 @@ class GoEmotionsMultiLabel(Dataset):
         self.old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
         self.new_order = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
         # fmt: on
-        # keep only the labels that are not [27]
-
         self.dataset = self.dataset.map(self._reduce_labels)
 
     def __len__(self):
@@ -81,14 +79,7 @@ class GoEmotionsMultiLabel(Dataset):
             )
         )
 
-        # if len(labels) > 1 and 6 in labels:
-        #     labels.remove(6)
-
-        # if len(labels) > 1 and 5 in labels:
-        #     labels.remove(5)
-
-        # item["labels"] = random.choice(labels)
-        item["labels"] = self._one_hot_encode(item["labels"])
+        item["labels"] = self._one_hot_encode(labels)
 
         return {k: v for k, v in item.items() if k != "_id"}
 
@@ -105,7 +96,6 @@ class GoEmotionsMultiClass(Dataset):
         self.old_order = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire", "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy", "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
         self.new_order = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
         # fmt: on
-        # keep only the labels that are not [27]
 
         self.dataset = self.dataset.map(self._reduce_labels)
 
@@ -137,35 +127,5 @@ class GoEmotionsMultiClass(Dataset):
             labels.remove(5)
 
         item["labels"] = random.choice(labels)
-        # item["labels"] = self._one_hot_encode(item["labels"])
 
         return {k: v for k, v in item.items() if k != "_id"}
-
-    def _one_hot_encode(self, item):
-        return [1. if i in item else 0. for i in range(len(self.new_order))]
-
-class Combined(Dataset):
-    def __init__(self, split: Literal["train", "test"], model_name):
-        dataset_path = os.path.join(
-            os.path.dirname(__file__), f"../../dataset/data_{split}.csv"
-        )
-        self.dataset = pd.read_csv(dataset_path)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.order = ["joy", "sad", "anger", "fear", "neutral"]
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        item = self.dataset.iloc[idx]
-        text = self.tokenizer(
-            item["Text"],
-            return_tensors="pt",
-        )
-        text["input_ids"] = text["input_ids"].squeeze()
-        text["attention_mask"] = text["attention_mask"].squeeze()
-        label = self._one_hot_encode(item["Emotion"])
-        return text, label
-
-    def _one_hot_encode(self, item):
-        return torch.Tensor([1.0 if i == item else 0.0 for i in range(7)])
