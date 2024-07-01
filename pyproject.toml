@@ -20,6 +20,7 @@ click = "^8.1.7"
 
 [tool.poetry.scripts]
 main = "anlp_project.model.__main__:main"
+webserver = "anlp_project.website.api:main"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

@@ -8,8 +8,12 @@ from anlp_project.model.model import LyricsClassifier
 
 
 class MoodHelper:
-    model = LyricsClassifier.load_from_checkpoint(
-        "/home/dhilab-mattia/Downloads/epoch=19-step=27140-7.ckpt"
+    model = LyricsClassifier(
+        "Franzin/xlm-roberta-base-goemotions-ekman-multilabel",
+        5e-6,
+        7,
+        32,
+        "goemotions",
     )
     tokenizer = AutoTokenizer.from_pretrained("FacebookAI/xlm-roberta-base")
     genius = Genius(
@@ -22,10 +26,8 @@ class MoodHelper:
     @staticmethod
     def get_mood(songs: list):
         moods = [0] * 7
-        songs = [songs[0]]
-        # print(songs)
         for song in songs:
-            lyrics = MoodHelper.get_song_lyrics("Another Lover", "Another Love")
+            lyrics = MoodHelper.get_song_lyrics(song[0], song[1])
             for line in lyrics:
                 encoded = MoodHelper.tokenizer(line, return_tensors="pt")
                 logits = MoodHelper.model(encoded)
@@ -52,6 +54,9 @@ class MoodHelper:
     @staticmethod
     def get_song_lyrics(artist: str, song: str):
         song = MoodHelper.genius.search_song(song, artist, get_full_info=False)
+        if song is None:
+            return []
+
         lyrics = [line for line in song.lyrics.split("\n")][1:]
         lyrics[-1] = re.sub(r"\d*K*Embed", "", lyrics[-1])
         lyrics[-1] = re.sub(r"You might also like", "", lyrics[-1])

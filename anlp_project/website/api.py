@@ -4,6 +4,7 @@ import random
 import uuid
 
 import spotipy
+import uvicorn
 from fastapi import FastAPI
 from spotipy.oauth2 import SpotifyOAuth
 from starlette.requests import Request
@@ -177,3 +178,16 @@ def spotify_callback(request: Request):
 @app.get("/suggest")
 def suggest():
     return FileResponse("static/suggest.html")
+
+
+@app.get("/")
+def redirect_to_login():
+    return RedirectResponse("/login")
+
+
+def main():
+    uvicorn.run(app, host="127.0.0.1", port=5000)
+
+
+if __name__ == "__main__":
+    main()

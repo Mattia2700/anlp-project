@@ -1,0 +1,279 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[preprint]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{fancyvrb}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{Applied NLP Project}
+
+
+\author{Mattia Franzin (239930) \\
+  \texttt{mattia.franzin@studenti.unitn.it} \\}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This project describes an music recommendation system project designed to operate in song lyrics for mood prediction of the user, based on Natural Language Processing (NLP) techniques. The system seamlessly integrate Spotify and Genius APIs, which help give personalized recommendations in a user-friendly interface. Along with PyTorch Lightning for model training efficiency, HuggingFace Transformers library was used for obtaining pre-trained models, and Weights and Biases for real-time performance tracking. This system incorporates a (multilingual) transformer architecture for analyzing lyrics and correctly classifying emotion. It enhances music streaming experience by making song recommendations to listeners based on their current state of emotions and is an example of the practical applications of NLP. The results demonstrate promising performances in emotion detection despite the limitations in training only on English datasets. 
+\end{abstract}
+
+\section{Introduction}
+
+The approach to listening to music has been revolutionized in this digital age, thanks to music streaming services. Spotify, being one of the most-known platforms, offers its users very broad access to a library of songs from various genres and artists around the world. 
+
+Not only Spotify revolutionized our life, but the same is going on with Natural Language Processing (NLP) techniques, that raised new possibilities for an array of applications. They help machines understand and manipulate human language, and applied to songs and lyrics, it can provide much help. Integrating NLP in music listening experience would be interesting, because people use these services on an almost daily basis, and such models could benefit it, deepening into themes, emotions, and stories written through lyrics.
+
+A multilingual transformer architecture-based network can provide text understanding and interpretation in various languages. A system which suggests songs to users based on the their mood has been created. This system collaborates with Spotify and Genius APIs to retrieve recent songs played by the user, extract the lyrics, and with the dominant emotion, obtain personalized recommendations for a specific user. A simple UI has also been developed, which allows users to interact with the system .
+
+\section{Tech Stack}
+
+The whole project is structured and completed with PyTorch Lightning, giving a more structured way than raw PyTorch by having an integrated entire backbone to the training, validation, and testing phases. This framework simplifies the workflow of developing deep learning models; it has built-in features to save/load checkpoints, search learning rates, determine batches size, establish actions at the start or end of epochs, and add loggers quickly.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/class-crop.png}
+    \caption{Example of a PyTorch Lightning Module}
+\end{figure}
+
+The training of the model began with Google Colab. Nevertheless, many limitations appeared regarding the availability of time and resources, including those used during the debugging sessions. 
+
+To address these challenges, the training part has been transferred to a remote machine from \textbf{LightningAI} (Cita). This platform provides is based on tokens, and 15 are gained each month (~22 training hours). You can earn more tokens through their educational tutorials. The token-based system allows flexible access to multiple GPUs that can be scaled according to computational needs. In this particular case, a \textbf{Single L4 GPU} model was used, which has 50\% more dedicated RAM than the \textbf{T4} model — with almost double the \textbf{TFLOPs} — 121 vs. 65.
+
+\textit{Weights and Biases} has been integrated into the setup for continuous monitoring and analysis of the progress made in training, validation and test. By tracking the model parameters in real-time, this tool produces helpful and user-understandable visualizations. These directly facilitate further model adaptations. 
+
+Regarding the models themselves, they all come from the \textbf{HuggingFace} Transformers library. The library is well-known for providing an enormous collection of pre-trained models that can easily be plugged into the projects, and potentially published. Along with the models, the library also provides \textbf{tokenizers}, which are essential for the models to understand the text. Datasets also come from another \textbf{HuggingFace} library, \textit{Datasets}, which provides fast and efficient access to a wide range of datasets, with easy manipulation and pre-processing.
+
+\section{Datasets}
+
+Unfortunately, no Italian text dataset is available with such emotion annotations. Therefore, the choice was to use English datasets along with multilingual models, hoping for generalization. The training was attempted on two different datasets; the second one gave the best result.
+
+\begin{itemize}
+    \item Multimodal EmotionLines Dataset (MELD)
+    \item GoEmotions
+\end{itemize}
+
+\subsection{Multimodal EmotionLines Dataset (MELD)} (source)
+
+MELD is a multimodal dataset of conversations from the TV series Friends. It is transcribed and annotated with emotions and polarity. A total of 13,000 dialogues constitute it, divided in a ratio of 72/8/20 into training, validation, and test sets. Only texts and emotions (Anger, Disgust, Sadness, Joy, Neutral, Surprise, Fear) were used.
+
+\subsection{GoEmotions}
+
+GoEmotions is a text dataset with Reddit comments annotated with emotions. The simplified version of the annotations was taken, which included 54.300 comments, cleaned from unclear examples, in an 80/10/10 ratio for the train/valid/test sets out of 211,000 overall comments. As well, the annotated emotions are 27 plus neutral, which were reduced to 6 plus neutral, as the focus is general classification rather than specificity of emotions, especially since many are very similar to each other.
+
+The emotions were grouped as follows, using Paul Ekman's (cita) basic emotions:
+
+\begin{itemize}
+  \setlength\itemsep{0.05em}
+  \item \textbf{anger}: anger, annoyance, disapproval
+  \item \textbf{disgust}: disgust
+  \item \textbf{fear}: fear, nervousness
+  \item \textbf{joy}: joy, amusement, approval, excitement, gratitude, love, optimism, relief, pride, admiration, desire, caring
+  \item \textbf{sadness}: sadness, disappointment, embarrassment, grief, remorse
+  \item \textbf{surprise}: surprise, realization, confusion, curiosity
+  \item \textbf{neutral}: neutral
+\end{itemize}
+
+\section{Models}
+
+All the models used are based on the transformer architecture, relying on the transformer's self-attention mechanism, handling long-range dependencies more efficiently than RNNs. Using this architecture, Google introduced BERT (Bidirectional Encoder Representations from Transformers), followed by many others.
+
+As opposed to traditional models, instead of reading text from left to right or right to left, BERT reads the entire text at once, allowing it to understand the context of a word based on all of its surroundings (https://towardsdatascience.com/bert-explained-state-of-the-art-language-model-for-nlp-f8b21a9b6270). To learn better representations, BERT was trained on two tasks:
+
+\begin{itemize}
+  \setlength\itemsep{0.05em}
+  \item \textbf{Masked Language Model (MLM)}: randomly masking 15\% of the words in each sentence and predicting them.
+  \item \textbf{Next Sentence Prediction (NSP)}: predicting whether two sentences are consecutive or not 
+\end{itemize}
+
+All tested models makes use of the \textit{base} version, instead of the \textit{large} one.
+
+All models has been instantiated \textit{ForSequenceClassification}, a class that wraps a transformer model for sequence classification, with a classifier on top of the transformer output, to be able, in this case, to classify the emotions of the lyrics.
+
+\subsection{RoBERTa}
+
+One year after BERT, RoBERTa (A Robustly Optimized BERT Approach) was introduced by Facebook AI, aiming to improve BERT's training process and performance. To do that, the NSP task was removed, the embedding changed from \textit{WordPiece} to \textit{Byte-Pair Encoding} (BPE), and network training was optimized, with a larger batch size, more data, and more training steps. Moreover, dynamic masking was introduced.
+
+The variant used in this project is the base one, with 125M parameters, trained on 160GB of data.
+
+\subsection{BigBird}
+
+BigBird, on top of the RoBERTa model, introduces a sparse attention mechanism, which allows the model to attend to only a few tokens, rather than all of them, reducing the computational cost. This is particularly useful when dealing with long sequences, as the model can focus on the most important tokens, ignoring the others.
+
+It can be useful when dealing with lyrics, since it supports up to 4096 tokens, which means an entire song can be processed at once, capturing the context of the entire song.
+
+\subsection{XLM-RoBERTa}
+
+XLM-RoBERTa is a multilingual model based on RoBERTa, trained on 2.5TB of data in 100 languages. To accommodate multiple languages, the network size was increased to 270M parameters. It is expected to generalize better on different languages, including Italian.
+
+This is the model used in the project, as the lyrics can be in different languages, not just English.
+
+\section{Results and Benchmarks}
+
+Since a model is being fine-tuned, the learning rate is a crucial hyper-parameter. The learning rate is set very low, around \textit{5e-5} or \textit{5e-6}. This was done to avoid \textbf{catastrophic forgetting}, a phenomenon where the model forgets what it has learned during pre-training, and overfits the new data, as shown on (cita). But even with this setup, this phenomenon was observed, so a scheduler was added to decrease the learning rate every two epochs with a 0.1 factor. Everything is then trained for at least 12 epochs.
+
+Both the multi-class and multi-label approaches were tested, but the best result was obtained by using the latter. The metrics used were accuracy and f1, both macro-average, to avoid that the largest classes influence the result too much.
+
+Moreover, multi-label approach has been chosen because sentences may carry more than one emotion, and this allows the model to predict multiple emotions for a single sentence.
+
+On the other hand, when counting class predictions with the multi-class approach, the model tends to predict \textit{neutral} or \textit{surprise} more often than the other classes, even when the text is clearly \textit{anger} or \textit{sad}. So, to reduce this bias, when training with the multi-class approach, if the sample has more than one emotion and \textit{neutral} is one of them, it is ignored; if there are more than one emotion and \textit{surprise} is one of them, this is ignored too. If more than one emotion is still present, a random one is chosen. Not the best approach, but it improves results. 
+
+(MELDTEXT)
+
+As already mentioned, the performance on Italian lyrics has been tested only in part, during the inference phase, with a quite satisfying result, considering that the model has never seen Italian text during the fine-tuning phase.
+
+
+The test plots can be found in \autoref{fig:multiclass} and \autoref{fig:multilabel}.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multiclass/test_f1.png}
+    \includegraphics[width=\columnwidth]{latex/multiclass/test_acc.png}
+    \caption{Test metrics on multiclass models}
+    \label{fig:multiclass}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_f1.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_acc.png}
+    \caption{Test metrics on multilabel models}
+    \label{fig:multilabel}
+\end{figure}
+
+As shown in \autoref{fig:multiclass} and in \autoref{fig:multilabel}, the multiclass approach present a slightly better \textbf{f1-score}, whereas the multilabel has an enormous advantage in terms of \textbf{accuracy}. Since we are more interested in predicting \textit{true positives} and \textit{true negatives}, a slight decrease in \textit{f1-score} is still acceptable.
+
+\newpage
+
+\section{Conclusion}
+
+In conclusion, the model created, once integrated with Spotify and Genius, is able to detect the emotions present in the lyrics of the songs. To avoid that too short stanzas are mistakenly classified as neutral, it was decided to group four consecutive lines into a single line, scrolling one line at a time. This allows for a more precise classification, and limits the effect of incomplete stanzas being misclassified. 
+
+Clearly, the model can only rely on the text, and not on the figurative meaning that some words or songs may be carrying, but it is still a good starting point. To avoid the model predicting emotions at random in the absence of other information, the 'neutral' emotion was used as a bucket for emotions not present, ignoring it if other emotions are present.
+
+When computing the most dominant emotions, the logits predicted by the model are sum up for each group of lines and songs, considering only the ones with a score higher than 0.50. The top-2 moods are then extracted and if the \textit{neutral} emotions is the dominant, the second one is returned. If \textit{neutral} is the only one, it is obviously returned.
+
+
+Overall, the entire pipeline works well:
+
+\begin{itemize}
+  \setlength\itemsep{0.05em}
+  \item The user logs in with Spotify credentials
+  \item The last week's listening history is retrieved from Spotify
+  \item The lyrics of the songs are extracted from Genius
+  \item The lyrics are processed by the model group of four lines at a time
+  \item The emotions are predicted and the most common one is chosen
+  \item The songs are recommended based on the emotion computed
+  \item The playlist is optionally created and user is redirected to Spotify
+\end{itemize}
+
+All the models are published on \href{https://huggingface.co/Franzin}{HuggingFace}, and the code is available on GitHub, upon invitation, since it contains API keys and tokens.
+
+% \bibliography{custom}
+
+\appendix
+
+\clearpage
+
+\section{Plots}
+\label{sec:appendix}
+
+\subsection{Multiclass}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multiclass/train_step.png}
+    \includegraphics[width=\columnwidth]{latex/multiclass/train_epoch.png}
+    \caption{Train metrics on multiclass models}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multiclass/val_f1.png}
+    \includegraphics[width=\columnwidth]{latex/multiclass/val_acc.png}
+    \includegraphics[width=\columnwidth]{latex/multiclass/val_loss.png}
+    
+    \caption{Validation metrics on multiclass models}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_f1.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_acc.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_loss.png}
+    \caption{Test metrics on multiclass models}
+\end{figure}
+
+\clearpage
+
+\subsection{Multilabel}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multilabel/train_step.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/train_epoch.png}
+    \caption{Train metrics on multilabel models}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multilabel/val_f1.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/val_acc.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/val_loss.png}
+    
+    \caption{Validation metrics on multilabel models}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_f1.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_acc.png}
+    \includegraphics[width=\columnwidth]{latex/multilabel/test_loss.png}
+    \caption{Test metrics on multilabel models}
+\end{figure}
+
+\subsection{Mood mapping to Spotify features}
+
+% table
+
+\
+
+\end{document}
