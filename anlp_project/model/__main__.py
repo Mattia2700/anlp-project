@@ -25,7 +25,7 @@ class FineTuneLearningRateFinder(LearningRateFinder):
 
 def main():
     model_name, lr, num_labels, batch_size = (
-        "FacebookAI/xlm-roberta-base",
+        "google/bigbird-roberta-base",
         5e-6,
         7,
         32,
@@ -67,6 +67,8 @@ def main():
     #     val = model(tok)
     #     print(val)
     #     text = input()
+
+    model.push_to_hub("Franzin/big-bird-roberta-base-goemotions-ekman-multiclass")
 
 if __name__ == "__main__":
     main()
