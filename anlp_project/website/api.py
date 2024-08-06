@@ -13,8 +13,8 @@ from starlette.staticfiles import StaticFiles
 
 from anlp_project.website.inference import MoodHelper
 
-os.environ["SPOTIPY_CLIENT_ID"] = "f516c752459a4b94acba6a768cad9c43"
-os.environ["SPOTIPY_CLIENT_SECRET"] = "641839e196f24feda3341dd5ac972749"
+os.environ["SPOTIPY_CLIENT_ID"] = "REDACTED"
+os.environ["SPOTIPY_CLIENT_SECRET"] = "REDACTED"
 os.environ["SPOTIPY_REDIRECT_URI"] = "http://localhost:5000/callback"
 
 app = FastAPI()
